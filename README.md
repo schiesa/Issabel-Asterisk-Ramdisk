@@ -42,3 +42,25 @@ done
 Para Hacer cambios en caliente
 
 mount -t tmpfs tmpfs /mnt/ramdisk -o size=2G,mode=1777,remount
+
+
+Specify how big is our ramdisk going to be.
+;Do this in /etc/grub.conf
+;ramdisk_size is in KB
+;Here we are configured for 2GB
+default=0
+timeout=5
+splashimage=(hd0,0)/grub/splash.xpm.gz
+hiddenmenu
+title CentOS (2.6.18-128.el5)
+root (hd0,0)
+kernel /vmlinuz-2.6.18-128.el5 ro root=/dev/VolGroup00/LogVol00 ramdisk_size=2048M
+initrd /initrd-2.6.18-128.el5.img
+
+;Put this in rc.local to create ramdisk during bootup
+/sbin/mke2fs -m 0 /dev/ram0
+/bin/mount /dev/ram0 /var/spool/asterisk/ramdisk
+/bin/mkdir /var/spool/asterisk/ramdisk/monitor
+/bin/mkdir /var/spool/asterisk/ramdisk/system
+/bin/mkdir /var/spool/asterisk/ramdisk/tmp
+/bin/chown -R asterisk.asterisk /var/spool/asterisk/ramdisk
