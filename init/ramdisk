@@ -1,0 +1,106 @@
+#
+# $Id: ramdisk,v 1.01 Sebastian Chiesa $
+#
+# Script para el control de RAMDISK 
+#
+# chkconfig: 2345 89 67
+# description: Script para el control de RAMDISK
+
+initdir=/etc/init.d
+
+
+# Source function library.
+. /etc/rc.d/init.d/functions
+
+
+test -e $DAEMON || exit 0
+
+PATH=/sbin:/usr/sbin:/bin:/usr/bin
+export PATH
+
+
+MONTAJE=/var/spool/asterisk/ramdisk
+prog=ramdisk
+
+function start() {
+        echo "Starting ramdisk: "
+        echo -n $"Formating ramdisk $DEVICE"
+	if [ -d $MONTAJE ]; then
+			if [ -d "/var/spool/asterisk/tmp" ]; then
+ 	 		# Control will enter here if $DIRECTORY exists.
+			rm -rf /var/spool/asterisk/tmp
+			fi
+			if [ -d "/var/spool/asterisk/system" ]; then
+                        rm -rf /var/spool/asterisk/system
+                        fi
+                  	if [ -d "/var/spool/asterisk/monitor" ]; then
+                        rm -rf /var/spool/asterisk/monitor
+                        fi
+			chown asterisk.asterisk /var/spool/asterisk/ramdisk
+                        mkdir /var/spool/asterisk/ramdisk/monitor
+                        chown asterisk:asterisk /var/spool/asterisk/ramdisk/monitor
+                        mkdir /var/spool/asterisk/ramdisk/system
+                        chown asterisk:asterisk /var/spool/asterisk/ramdisk/system
+                        mkdir /var/spool/asterisk/ramdisk/tmp
+                        chown asterisk:asterisk /var/spool/asterisk/ramdisk/tmp
+                        cd /var/spool/asterisk
+                        ln -s /var/spool/asterisk/ramdisk/monitor
+                        ln -s /var/spool/asterisk/ramdisk/system
+                        ln -s /var/spool/asterisk/ramdisk/tmp
+	fi
+        echo "OK"
+	RETVAL=0
+        return $RETVAL
+}
+
+function stop() {
+        echo -n $"Stopping ramdisk: "
+                rm -rf /var/spool/asterisk/tmp
+                rm -rf /var/spool/asterisk/system
+                rm -rf /var/spool/asterisk/monitor
+		rm -rf /var/spool/asterisk/ramdisk/tmp
+		rm -rf /var/spool/asterisk/ramdisk/monitor
+		rm -rf /var/spool/asterisk/ramdisk/system
+        RETVAL=0
+        return $RETVAL
+}
+
+function restart() {
+        stop
+        start
+}
+function status2() {
+        df -h | grep 'ram' &> /dev/null
+        RETVAL=$?
+        if [ $RETVAL -eq 0 ] ; then
+                echo "Filesystem            Size  Used Avail Use% Mounted on"
+                df -h | grep 'ram'
+        else
+                echo "it look like there is no Ramdisk working"
+        fi
+        return $RETVAL
+}
+
+
+RETVAL=0
+
+case "$1" in
+        start)
+                start
+                ;;
+        stop)
+                stop
+                ;;
+        status)
+                status2
+                ;;
+        restart)
+                restart
+                ;;
+        *)
+                echo $"Usage: $0 {start|stop|status|restart}"
+                exit 1;
+                ;;
+esac
+
+exit $?
